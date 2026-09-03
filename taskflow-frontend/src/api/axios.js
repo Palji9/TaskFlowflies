@@ -36,8 +36,10 @@ api.interceptors.response.use(
   (r) => r,
   async (error) => {
     const orig = error.config;
-    const isAuth = orig?.url?.includes("/auth/");
-    if (error.response?.status === 401 && !orig._retry && !isAuth) {
+    const isRefreshRequest = orig?.url?.includes("/auth/refresh-token");
+    const isCurrentUserRequest = orig?.url?.includes("/auth/current-user");
+    const canRefresh = !isRefreshRequest && (!orig?.url?.includes("/auth/") || isCurrentUserRequest);
+    if (error.response?.status === 401 && !orig?._retry && canRefresh) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => queue.push({ resolve, reject }))
           .then((tok) => { orig.headers.Authorization = `Bearer ${tok}`; return api(orig); })

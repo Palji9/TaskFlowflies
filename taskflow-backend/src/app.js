@@ -16,6 +16,7 @@ const defaultAllowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "https://task-flowflies.vercel.app",
+  "https://task-flowflies-1358apcfc-dmt20.vercel.app",
 ];
 
 const configuredOrigins = process.env.CORS_ORIGIN?.split(",").map((origin) => origin.trim()).filter(Boolean) ?? [];
