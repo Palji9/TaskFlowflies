@@ -1,6 +1,14 @@
 import axios from "axios";
 
-export const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
+const getDefaultApiUrl = () => {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (typeof window !== "undefined" && window.location.hostname.endsWith(".vercel.app")) {
+    return "https://taskflowflies.onrender.com/api/v1";
+  }
+  return "http://localhost:8000/api/v1";
+};
+
+export const BASE_URL = getDefaultApiUrl();
 export const STATIC_URL = BASE_URL.replace("/api/v1", "");
 
 export const api = axios.create({

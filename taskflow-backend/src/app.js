@@ -12,16 +12,29 @@ import { errorHandler } from "./middlewares/error.middlewares.js";
 
 const app = express();
 
-const allowedOrigins = process.env.CORS_ORIGIN?.split(",").map((origin) => origin.trim());
+const defaultAllowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://task-flowflies.vercel.app",
+];
+
+const configuredOrigins = process.env.CORS_ORIGIN?.split(",").map((origin) => origin.trim()).filter(Boolean) ?? [];
+const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...configuredOrigins])];
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins?.includes("*") || allowedOrigins?.includes(origin)) {
-      return callback(null, true);
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, origin);
     }
+
+    console.warn(`CORS blocked origin: ${origin}`);
     return callback(new Error("Origin not allowed by CORS"));
   },
   credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
 }));
 
 app.use(express.json({ limit: "16kb" }));
@@ -29,6 +42,20 @@ app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use(express.static("public"));
 app.use(cookieParser());
 app.use(morgan("dev"));
+
+// ── Root / default welcome ─────────────────────────────────────────────
+app.get("/", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "TaskFlow API is running and everything is working fine ✅",
+    version: "1.0.0",
+    endpoints: {
+      healthcheck: "/api/v1/healthcheck",
+      auth: "/api/v1/auth",
+      workspaces: "/api/v1/workspaces"
+    }
+  });
+});
 
 // ── Health check ──────────────────────────────────────────────────────
 app.get("/api/v1/healthcheck", (req, res) => {
