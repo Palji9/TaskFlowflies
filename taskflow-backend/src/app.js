@@ -19,7 +19,13 @@ const defaultAllowedOrigins = [
   "https://task-flowflies-1358apcfc-dmt20.vercel.app",
 ];
 
-const configuredOrigins = process.env.CORS_ORIGIN?.split(",").map((origin) => origin.trim()).filter(Boolean) ?? [];
+const parseOrigins = (rawValue = "") =>
+  rawValue
+    .split(/\s*(?:,|\|\|)\s*/)
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+const configuredOrigins = parseOrigins(process.env.CORS_ORIGIN);
 const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...configuredOrigins])];
 
 app.use(cors({
