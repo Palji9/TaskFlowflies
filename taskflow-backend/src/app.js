@@ -1,5 +1,4 @@
 import express from "express";
-import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 
@@ -44,29 +43,18 @@ app.use((req, res, next) => {
   if (requestOrigin && isAllowedOrigin(requestOrigin)) {
     res.setHeader("Access-Control-Allow-Origin", requestOrigin);
     res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept");
     res.setHeader("Vary", "Origin");
+  }
+
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return;
   }
 
   next();
 });
-
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || isAllowedOrigin(origin)) {
-      return callback(null, origin || true);
-    }
-
-    console.warn(`CORS blocked origin: ${origin}`);
-    return callback(new Error("Origin not allowed by CORS"));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
-  optionsSuccessStatus: 204,
-};
-
-app.options("*", cors(corsOptions));
-app.use(cors(corsOptions));
 
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
