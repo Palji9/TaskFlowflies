@@ -15,6 +15,8 @@ const app = express();
 const defaultAllowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
   "https://task-flowflies.vercel.app",
   "https://task-flowflies-1358apcfc-dmt20.vercel.app",
 ];
@@ -28,10 +30,18 @@ const parseOrigins = (rawValue = "") =>
 const configuredOrigins = parseOrigins(process.env.CORS_ORIGIN);
 const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...configuredOrigins])];
 
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+
+  return /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+    || /^https?:\/\/.*\.vercel\.app$/i.test(origin);
+};
+
 app.use((req, res, next) => {
   const requestOrigin = req.headers.origin;
 
-  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+  if (requestOrigin && isAllowedOrigin(requestOrigin)) {
     res.setHeader("Access-Control-Allow-Origin", requestOrigin);
     res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader("Vary", "Origin");
@@ -42,10 +52,8 @@ app.use((req, res, next) => {
 
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, origin);
+    if (!origin || isAllowedOrigin(origin)) {
+      return callback(null, origin || true);
     }
 
     console.warn(`CORS blocked origin: ${origin}`);
@@ -53,7 +61,8 @@ const corsOptions = {
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
+  optionsSuccessStatus: 204,
 };
 
 app.options("*", cors(corsOptions));
