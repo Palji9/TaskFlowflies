@@ -23,10 +23,22 @@ const parseOrigins = (rawValue = "") =>
   rawValue
     .split(/\s*(?:,|\|\|)\s*/)
     .map((origin) => origin.trim())
-    .filter(Boolean);
+    .filter((origin) => origin && origin !== "*");
 
 const configuredOrigins = parseOrigins(process.env.CORS_ORIGIN);
 const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...configuredOrigins])];
+
+app.use((req, res, next) => {
+  const requestOrigin = req.headers.origin;
+
+  if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+    res.setHeader("Access-Control-Allow-Origin", requestOrigin);
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Vary", "Origin");
+  }
+
+  next();
+});
 
 app.use(cors({
   origin: (origin, callback) => {
