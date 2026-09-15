@@ -11,31 +11,34 @@ import { errorHandler } from "./middlewares/error.middlewares.js";
 
 const app = express();
 
-const defaultAllowedOrigins = [
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "http://127.0.0.1:5173",
-  "http://127.0.0.1:5174",
-  "https://task-flowflies.vercel.app",
-  "https://task-flowflies-1358apcfc-dmt20.vercel.app",
-];
-
 const parseOrigins = (rawValue = "") =>
   rawValue
     .split(/\s*(?:,|\|\|)\s*/)
     .map((origin) => origin.trim())
-    .filter((origin) => origin && origin !== "*");
+    .filter(Boolean);
 
 const configuredOrigins = parseOrigins(process.env.CORS_ORIGIN);
-const allowedOrigins = [...new Set([...defaultAllowedOrigins, ...configuredOrigins])];
+const invalidOrigins = configuredOrigins.filter((origin) => {
+  try {
+    const parsedOrigin = new URL(origin);
+    return !["http:", "https:"].includes(parsedOrigin.protocol)
+      || parsedOrigin.origin !== origin;
+  } catch {
+    return true;
+  }
+});
 
-const isAllowedOrigin = (origin) => {
-  if (!origin) return true;
-  if (allowedOrigins.includes(origin)) return true;
+if (invalidOrigins.length > 0) {
+  throw new Error(`Invalid CORS_ORIGIN value(s): ${invalidOrigins.join(", ")}`);
+}
 
-  return /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
-    || /^https?:\/\/.*\.vercel\.app$/i.test(origin);
-};
+if (process.env.NODE_ENV === "production" && configuredOrigins.length === 0) {
+  throw new Error("CORS_ORIGIN must contain at least one allowed origin in production");
+}
+
+const allowedOrigins = new Set(configuredOrigins);
+
+const isAllowedOrigin = (origin) => !origin || allowedOrigins.has(origin);
 
 app.use((req, res, next) => {
   const requestOrigin = req.headers.origin;

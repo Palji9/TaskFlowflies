@@ -14,7 +14,7 @@ import { WorkspaceRolesEnum, ProjectRolesEnum } from "../utils/constants.js";
 const router = Router({ mergeParams: true }); // inherits :workspaceId from parent
 router.use(verifyJWT);
 
-const wsMember = validateWorkspacePermission([]);
+const wsMember = validateWorkspacePermission([WorkspaceRolesEnum.OWNER, WorkspaceRolesEnum.ADMIN, WorkspaceRolesEnum.MEMBER]);
 const wsManager = validateWorkspacePermission([WorkspaceRolesEnum.OWNER, WorkspaceRolesEnum.ADMIN]);
 const canManage = [ProjectRolesEnum.ADMIN, ProjectRolesEnum.PROJECT_ADMIN];
 

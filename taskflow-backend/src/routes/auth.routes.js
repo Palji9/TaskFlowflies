@@ -8,7 +8,8 @@ import { verifyJWT } from "../middlewares/auth.middlewares.js";
 import { validate } from "../middlewares/validator.middlewares.js";
 import {
   userRegisterValidator, userLoginValidator,
-  userForgotPasswordValidator, userResetForgottenPasswordValidator,
+  userForgotPasswordValidator,
+  userResetForgottenPasswordValidator,
   userChangeCurrentPasswordValidator,
 } from "../validators/auth.validators.js";
 
