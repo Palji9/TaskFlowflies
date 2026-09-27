@@ -24,7 +24,7 @@ ACCESS_TOKEN_SECRET=generate-a-long-random-value
 ACCESS_TOKEN_EXPIRY=1d
 REFRESH_TOKEN_SECRET=generate-a-different-long-random-value
 REFRESH_TOKEN_EXPIRY=10d
-CORS_ORIGIN=https://your-frontend-domain.example
+CORS_ORIGIN=https://task-flowflies.vercel.app
 ```
 
 Also add the SMTP variables used by the email features. Do not upload `.env` files or put secrets in the repository.
@@ -46,10 +46,12 @@ Create a static site (Vercel, Netlify, or a similar provider) with:
 Add this environment variable in the frontend service dashboard:
 
 ```env
-VITE_API_URL=https://your-backend-domain.example/api/v1
+VITE_API_URL=https://taskflowflies.onrender.com/api/v1
 ```
 
-The frontend fallback points to localhost and is intended only for local development.
+Set these values in the hosting dashboards, not in committed environment files. `CORS_ORIGIN` must match the frontend's origin exactly (scheme and host, with no path). Add any additional Vercel preview origins as comma-separated values if those previews need API access.
+
+The frontend uses `VITE_API_URL` when it is set. Without it, Vercel-hosted pages fall back to the Render API above, while local development falls back to `http://localhost:8000/api/v1`.
 
 ## Local development
 
